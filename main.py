@@ -1,6 +1,9 @@
 from scipy.integrate import dblquad
 import math
 from PIL import Image, ImageDraw
+import numpy as np
+import time
+start_time = time.time()
 
 # Read image
 image = Image.open('screen_f.jpg')#'casino.jpg'
@@ -39,12 +42,31 @@ print(f"координата х: {x[3]} координата у : {y[3]} зна�
 print(f"Размер изображения : {image.size}")
 print(f"высота на ширину {width*height}")
 print( f"количество ненулевых пикселей : {xx}")# количество ненулевых пикселей
+C = [0]*width*height
 for i in range(len(f)): # count Fourier coeficents
-    C = dblquad(lambda x, y: f[i] * math.sin(math.pi*x*n/width)*math.sin(math.pi*y*m/height)*math.sin(math.pi*k*x/width)*math.sin(math.pi*l*y/height), 0, width, lambda x: 0, lambda x: height)
-print(f[j], C)# Сделать из С массив
+    C[i] = dblquad(lambda x, y: f[i] * math.sin(math.pi*x/width)*math.sin(math.pi*y/height)*math.sin(math.pi*x/width)*math.sin(math.pi*y/height), 0, height, lambda x: 0, lambda x: width)
 
-#reconsruc the image
-for n in range(width):
-    for m in range(height):
-        lambda x, y: C*math.sin(math.pi*n*x/width)*math.sin(math.pi*m*y/height)
+print(f[2], C[2][0])# Сделать из С массив
+non_zero_a = np.nonzero(C)
+print(non_zero_a)
+F = [0]*len(f)
+   #reconsruct the image
+for x in range(width):
+    for y in range(height):
+        F[x] = C[x][0]*math.sin(math.pi*x/width)*math.sin(math.pi*y/height) #lambda x, y: C[n]*math.sin(math.pi*x/width)*math.sin(math.pi*y/height)
+
+non_zero_F = np.nonzero(F)
+print(non_zero_F)
+
+for x in range(width):
+    for y in range(height):
+       # r = pix[x, y][0] #узнаём значение красного цвета пикселя
+       # g = pix[x, y][1] #зелёного
+       # b = pix[x, y][2] #синего
+       #
+       draw.point((x, y), (int(F[x]), int(F[x]), int(F[x]))) #рисуем пиксель равный значению полуенной функции
+
+image.save("result.jpg", "JPEG")
+
+print("--- %s seconds ---" % (time.time() - start_time))
 
